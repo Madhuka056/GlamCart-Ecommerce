@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream text-ink font-sans antialiased;
+}
+
+h1, h2, h3, .font-display {
+  font-family: 'Playfair Display', serif;
+}
+
+@keyframes hero-image-drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.12); }
+}
+
+@keyframes hero-image-drift-mobile {
+  from { transform: scale(1.1); }
+  to { transform: scale(1.25); }
+}
+
+@keyframes hero-copy-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-image {
+  animation: hero-image-drift 3s ease-out both;
+  transform-origin: center top;
+  will-change: transform;
+}
+
+.hero-image-models {
+  transform-origin: center 16%;
+}
+
+@media (max-width: 767px) {
+  .hero-image {
+    animation: hero-image-drift-mobile 3s ease-out both;
+    transform-origin: left 35%;
+  }
+
+  .hero-image-models {
+    transform-origin: center 16%;
+  }
+}
+
+.hero-item {
+  opacity: 0;
+  animation: hero-copy-rise 700ms ease-out 150ms both;
+}
+
+.hero-item-delay-1 { animation-delay: 300ms; }
+.hero-item-delay-2 { animation-delay: 450ms; }
+.hero-item-delay-3 { animation-delay: 600ms; }
+
+@keyframes shop-grid-enter {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.shop-product-grid {
+  animation: shop-grid-enter 450ms ease-out both;
+}
+
+@keyframes about-image-reveal {
+  from { opacity: 0; transform: translateX(-100vw) scale(0.94); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes about-copy-reveal {
+  from { opacity: 0; transform: translateX(34px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.about-image {
+  opacity: 0;
+  transform: translateX(-100vw) scale(0.94);
+}
+
+.reveal-visible .about-image {
+  animation: about-image-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-visible .about-image-1 { animation-delay: 100ms; }
+.reveal-visible .about-image-2 { animation-delay: 220ms; }
+.reveal-visible .about-image-3 { animation-delay: 340ms; }
+.reveal-visible .about-image-4 { animation-delay: 460ms; }
+
+.about-copy-item,
+.about-value {
+  opacity: 0;
+  transform: translateX(34px);
+}
+
+.reveal-visible .about-copy-item,
+.reveal-visible .about-value {
+  animation: about-copy-reveal 600ms ease-out 250ms both;
+}
+
+.reveal-visible .about-copy-delay-1 { animation-delay: 360ms; }
+.reveal-visible .about-copy-delay-2 { animation-delay: 470ms; }
+.reveal-visible .about-value-1 { animation-delay: 580ms; }
+.reveal-visible .about-value-2 { animation-delay: 680ms; }
+.reveal-visible .about-value-3 { animation-delay: 780ms; }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 700ms ease var(--reveal-delay, 0ms), transform 700ms ease var(--reveal-delay, 0ms);
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-image,
+  .hero-item,
+  .shop-product-grid,
+  .about-image,
+  .about-copy-item,
+  .about-value {
+    animation: none;
+    opacity: 1;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
