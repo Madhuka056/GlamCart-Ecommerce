@@ -28,3 +28,13 @@ remains saved and the API response reports `confirmationEmailStatus` as
 The backend recalculates product prices, delivery charges, vouchers, and the
 final LKR amount before creating an order. Keep `src/config/productPrices.js`
 index-aligned with the frontend catalog when catalog prices or ordering change.
+
+## PayHere card payments
+
+Set `PAYHERE_MERCHANT_ID`, `PAYHERE_MERCHANT_SECRET`, and `PAYHERE_MODE` in the
+backend environment. Use sandbox merchant credentials with `PAYHERE_MODE=sandbox`
+for testing; use live credentials only with `PAYHERE_MODE=live`. `SERVER_URL`
+must be the publicly reachable HTTPS base URL of the backend so PayHere can send
+payment notifications. Set `CLIENT_URL` to the frontend origin when the backend
+cannot receive a browser `Origin` header. Keep the merchant secret on the backend
+only.

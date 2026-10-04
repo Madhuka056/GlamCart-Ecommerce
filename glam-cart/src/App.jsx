@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
+import logo from './assets/Logo.png'
 import TopBar from './components/TopBar'
 import Header from './components/Header'
 import Hero from './components/Hero'
@@ -36,6 +37,7 @@ export default function App() {
           <CartProvider>
             <div className="min-h-screen bg-cream">
               <ScrollToTop />
+              <PageLoadingScreen />
               <TopBar compact={isShopPage} />
               <Header isShopPage={isShopPage} />
               <Routes>
@@ -54,6 +56,45 @@ export default function App() {
         </WishlistProvider>
       </AuthPromptProvider>
     </AuthProvider>
+  )
+}
+
+function PageLoadingScreen() {
+  const { pathname, search } = useLocation()
+  const [visible, setVisible] = useState(true)
+  const [exiting, setExiting] = useState(false)
+
+  useEffect(() => {
+    setVisible(true)
+    setExiting(false)
+
+    const exitTimer = window.setTimeout(() => setExiting(true), 360)
+    const hideTimer = window.setTimeout(() => setVisible(false), 540)
+
+    return () => {
+      window.clearTimeout(exitTimer)
+      window.clearTimeout(hideTimer)
+    }
+  }, [pathname, search])
+
+  if (!visible) return null
+
+  return (
+    <div
+      className={`page-loading-screen${exiting ? ' page-loading-screen-exiting' : ''}`}
+      role="status"
+      aria-live="polite"
+      aria-label="Loading Glam Cart"
+    >
+      <div className="page-loading-content">
+        <img src={logo} alt="Glam Cart" className="page-loading-logo" />
+        <p className="page-loading-brand">Glam Cart</p>
+        <p className="page-loading-label">Loading your experience</p>
+        <div className="page-loading-track" aria-hidden="true">
+          <div className="page-loading-progress" />
+        </div>
+      </div>
+    </div>
   )
 }
 

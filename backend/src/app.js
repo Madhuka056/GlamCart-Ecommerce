@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import payhereRoutes from './routes/payhereRoutes.js';
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use(
   })
 );
 app.use(express.json({ limit: '8mb' }));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false })); // PayHere notify data read karanna
 app.use(cookieParser());
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
@@ -33,6 +34,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/payhere', payhereRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

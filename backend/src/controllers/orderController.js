@@ -39,6 +39,8 @@ const toOrderResponse = (order) => ({
   customer: order.customer,
   items: order.items,
   payment: order.payment,
+  paymentStatus: order.paymentStatus || 'pending',
+  paidAt: order.paidAt || null,
   subtotal: order.subtotal,
   shippingFee: order.shippingFee,
   discount: order.discount,
@@ -119,6 +121,7 @@ export function buildOrderValues(body, user) {
     customer,
     items,
     payment: selectedPayment,
+    paymentStatus: 'pending',
     paymentDetails: isBankTransfer
       ? {
           bankName: String(body.paymentDetails.bankName || '').trim(),
@@ -164,7 +167,11 @@ async function sendConfirmation(order, email) {
 export const createOrder = async (req, res) => {
   const values = buildOrderValues(req.body, req.user)
   const order = await Order.create(values)
-  await sendConfirmation(order, req.user.email)
+
+  // Card orders: confirmation email is sent after PayHere confirms the payment
+  if (order.payment !== 'Card Payment') {
+    await sendConfirmation(order, req.user.email)
+  }
 
   res.status(201).json({
     success: true,

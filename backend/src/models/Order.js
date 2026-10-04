@@ -37,7 +37,18 @@ const orderSchema = new mongoose.Schema(
         message: 'An order must contain between 1 and 100 items',
       },
     },
-    payment: { type: String, required: true, enum: ['Cash on Delivery', 'Bank Transfer'] },
+    payment: {
+      type: String,
+      required: true,
+      enum: ['Cash on Delivery', 'Bank Transfer', 'Card Payment'],
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'cancelled'],
+      default: 'pending',
+    },
+    paidAt: { type: Date, default: null },
+    payherePaymentId: { type: String, trim: true, maxlength: 80, default: '' },
     paymentDetails: {
       bankName: { type: String, trim: true, maxlength: 120, default: '' },
       accountName: { type: String, trim: true, maxlength: 120, default: '' },

@@ -24,7 +24,10 @@ router.post(
     body('customer.address').trim().notEmpty().withMessage('Address is required'),
     body('customer.city').trim().notEmpty().withMessage('City is required'),
     body('customer.district').trim().notEmpty().withMessage('District is required'),
-    body('payment').optional().isIn(['Cash on Delivery', 'Bank Transfer']).withMessage('Invalid payment method'),
+    body('payment')
+      .optional()
+      .isIn(['Cash on Delivery', 'Bank Transfer', 'Card Payment'])
+      .withMessage('Invalid payment method'),
     body('paymentDetails.bankName').if(body('payment').equals('Bank Transfer')).trim().notEmpty().withMessage('Bank name is required'),
     body('paymentDetails.accountName').if(body('payment').equals('Bank Transfer')).trim().notEmpty().withMessage('Account holder name is required'),
     body('paymentDetails.accountNumber').if(body('payment').equals('Bank Transfer')).trim().notEmpty().withMessage('Account number is required'),

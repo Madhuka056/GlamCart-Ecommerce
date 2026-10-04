@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { Banknote, Check, Truck } from 'lucide-react'
+import { Banknote, Check, CreditCard, Truck } from 'lucide-react'
 import { products } from './ShopPage'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
 import { apiRequest } from '../../lib/api'
+import { startPayHerePayment } from '../../lib/payhere'
 import { DISTRICTS, getDeliveryEstimate, getShippingFee } from '../../lib/shipping'
 import { VOUCHERS, getDiscount } from '../../lib/vouchers'
 import { formatLkr, toLkr } from '../../lib/currency'
@@ -41,6 +42,9 @@ export default function CheckoutPage() {
   const { user } = useAuth()
   const { cart, removeItems, shippingDistrict, setShippingDistrict } = useCart()
   const placedRef = useRef(false)
+  // Card order eka create wela, payment eka complete wenne nathnam mekata save wenawa
+  // (retry karanakota aluth order ekak hadanne nathuwa eka ma use karanna)
+  const pendingCardRef = useRef(null)
 
   // Selected cart lines are passed from the cart page via router state
   const keys = location.state?.keys || []
@@ -152,6 +156,8 @@ export default function CheckoutPage() {
     setOrderError('')
     setPlacingOrder(true)
 
+    const isCard = paymentMethod === 'Card Payment'
+
     const order = {
       customer: { ...address, district: shippingDistrict },
       items: items.map(({ product, quantity, size, color, index }) => ({
@@ -185,10 +191,34 @@ export default function CheckoutPage() {
     }
 
     try {
-      const result = await apiRequest('/orders', {
-        method: 'POST',
-        body: JSON.stringify(order),
-      })
+      // Same card order ekata retry karanakota aluth order ekak hadanne naha
+      const signature = JSON.stringify(order)
+      let result
+
+      if (isCard && pendingCardRef.current?.signature === signature) {
+        result = pendingCardRef.current.result
+      } else {
+        result = await apiRequest('/orders', {
+          method: 'POST',
+          body: JSON.stringify(order),
+        })
+        if (isCard) pendingCardRef.current = { signature, result }
+      }
+
+      if (isCard) {
+        // Backend eken hash ekka payment object eka ganna, ita passe PayHere popup eka open karanna
+        const { payment } = await apiRequest('/payhere/start', {
+          method: 'POST',
+          body: JSON.stringify({ orderId: result.order.orderId }),
+        })
+
+        const outcome = await startPayHerePayment(payment)
+        if (outcome !== 'completed') {
+          setOrderError('Payment was not completed. Click "Pay Now" to try again.')
+          return
+        }
+        pendingCardRef.current = null
+      }
 
       placedRef.current = true
       removeItems(
@@ -209,6 +239,12 @@ export default function CheckoutPage() {
       setPlacingOrder(false)
     }
   }
+
+  const paymentOptions = [
+    { id: 'Cash on Delivery', label: 'Cash on Delivery', description: 'Pay when you receive', icon: Banknote },
+    { id: 'Bank Transfer', label: 'Bank Transfer', description: 'Transfer and upload proof', icon: Check },
+    { id: 'Card Payment', label: 'Card Payment', description: 'Visa / Mastercard via PayHere', icon: CreditCard },
+  ]
 
   return (
     <main className="bg-[#f7f3ed] px-6 md:px-12 py-6 md:py-7 min-h-[calc(100vh-152px)]">
@@ -321,7 +357,7 @@ export default function CheckoutPage() {
         <aside className="bg-sand rounded-2xl p-6 lg:sticky lg:top-24">
           <h2 className="font-display text-xl text-ink mb-4">Payment Method</h2>
           <div className="space-y-3 mb-6">
-            {[{ id: 'Cash on Delivery', label: 'Cash on Delivery', description: 'Pay when you receive', icon: Banknote }, { id: 'Bank Transfer', label: 'Bank Transfer', description: 'Transfer and upload proof', icon: Check }].map(({ id, label, description, icon: Icon }) => (
+            {paymentOptions.map(({ id, label, description, icon: Icon }) => (
               <button
                 key={id}
                 type="button"
@@ -343,6 +379,16 @@ export default function CheckoutPage() {
               </button>
             ))}
           </div>
+
+          {paymentMethod === 'Card Payment' && (
+            <div className="mb-6 rounded-xl border border-cream-dark bg-cream p-4">
+              <p className="text-sm text-ink font-medium mb-1">Secure card payment</p>
+              <p className="text-xs text-stone">
+                A secure PayHere window will open when you click Pay Now. You enter your card details there.
+                Your card details are never stored on our website.
+              </p>
+            </div>
+          )}
 
           {paymentMethod === 'Bank Transfer' && (
             <div className="mb-6 rounded-xl border border-cream-dark bg-cream p-4">
@@ -434,7 +480,7 @@ export default function CheckoutPage() {
             disabled={placingOrder}
             className="w-full bg-charcoal text-cream text-sm font-semibold py-3.5 rounded-full hover:bg-ink transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {placingOrder ? 'Preparing...' : 'Place Order'}
+            {placingOrder ? 'Preparing...' : paymentMethod === 'Card Payment' ? 'Pay Now' : 'Place Order'}
           </button>
           {orderError && <p role="alert" className="text-xs text-terracotta text-center mt-3">{orderError}</p>}
           <p className="text-xs text-stone text-center mt-3">
