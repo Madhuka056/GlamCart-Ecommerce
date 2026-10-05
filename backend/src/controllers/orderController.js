@@ -1,6 +1,9 @@
 import Order from '../models/Order.js'
-import { getProductPriceLkr, usdToLkr } from '../config/productPrices.js'
+import Product from '../models/Product.js'
+import Voucher from '../models/Voucher.js'
+import { usdToLkr } from '../config/productPrices.js'
 import { sendOrderConfirmation } from '../utils/sendOrderConfirmation.js'
+import { restoreProductStock, restoreOrderInventory } from '../utils/productInventory.js'
 
 const districtZones = {
   Colombo: 'colombo',
@@ -30,8 +33,6 @@ const districtZones = {
   Monaragala: 'far',
 }
 
-const voucherValues = { GLAM10: { type: 'percent', value: 10 }, WELCOME5: { type: 'amount', value: 5 } }
-
 const toOrderResponse = (order) => ({
   orderId: order._id.toString(),
   id: `GC${order._id.toString().slice(-8).toUpperCase()}`,
@@ -52,7 +53,7 @@ const toOrderResponse = (order) => ({
   confirmationEmailStatus: order.confirmationEmailStatus,
 })
 
-export function buildOrderValues(body, user) {
+export async function buildOrderValues(body, user) {
   const customer = body.customer
   const district = customer?.district
   const zone = districtZones[district]
@@ -74,80 +75,140 @@ export function buildOrderValues(body, user) {
     }
   }
 
-  const items = body.items.map((item) => {
+  if (!Array.isArray(body.items) || body.items.length === 0) {
+    throw Object.assign(new Error('Add at least one product to your order'), { statusCode: 400 })
+  }
+
+  const quantities = new Map()
+  for (const item of body.items) {
     const quantity = Number(item.quantity)
-    const index = Number(item.index)
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
       throw Object.assign(new Error('Invalid product quantity'), { statusCode: 400 })
     }
+    if (!/^[a-f\d]{24}$/i.test(String(item.productId || ''))) {
+      throw Object.assign(new Error('Invalid product selection. Please refresh your cart.'), { statusCode: 400 })
+    }
+    if (!/^[a-f\d]{24}$/i.test(String(item.variantId || ''))) {
+      throw Object.assign(new Error('Choose a valid product size and color. Please refresh your cart.'), { statusCode: 400 })
+    }
+    const key = `${item.productId}:${item.variantId}`
+    quantities.set(key, {
+      productId: item.productId,
+      variantId: item.variantId,
+      quantity: (quantities.get(key)?.quantity || 0) + quantity,
+    })
+  }
 
-    let price
-    try {
-      price = getProductPriceLkr(index)
-    } catch {
-      throw Object.assign(new Error('Invalid product selection'), { statusCode: 400 })
+  const reservations = []
+  const variantsByKey = new Map()
+  const productsById = new Map()
+  try {
+    for (const { productId, variantId, quantity } of quantities.values()) {
+      const product = await Product.findOneAndUpdate(
+        {
+          _id: productId,
+          active: true,
+          variants: { $elemMatch: { _id: variantId, active: true, stock: { $gte: quantity } } },
+        },
+        { $inc: { stock: -quantity, 'variants.$.stock': -quantity } },
+        { new: true },
+      )
+      if (!product) {
+        const exists = await Product.exists({
+          _id: productId,
+          active: true,
+          variants: { $elemMatch: { _id: variantId, active: true } },
+        })
+        throw Object.assign(
+          new Error(exists ? 'One or more items are out of stock. Please update your cart.' : 'A product in your cart is no longer available.'),
+          { statusCode: 409 },
+        )
+      }
+      reservations.push({ productId, variantId, quantity })
+      variantsByKey.set(`${productId}:${variantId}`, product.variants.id(variantId))
+      productsById.set(productId, product)
     }
 
-    if (typeof item.name !== 'string' || !item.name.trim() || typeof item.image !== 'string') {
-      throw Object.assign(new Error('Invalid product details'), { statusCode: 400 })
-    }
+    const items = body.items.map((item) => {
+      const productVariant = variantsByKey.get(`${item.productId}:${item.variantId}`)
+      if (!productVariant) throw Object.assign(new Error('Invalid product selection'), { statusCode: 400 })
+      const product = productsById.get(item.productId)
+      const quantity = Number(item.quantity)
+      if (!product) throw Object.assign(new Error('Invalid product selection'), { statusCode: 400 })
+
+      return {
+        productId: product._id,
+        variantId: item.variantId,
+        index: product.legacyIndex,
+        name: product.name,
+        image: product.image,
+        price: product.priceLkr,
+        quantity,
+        size: productVariant.size,
+        color: productVariant.color,
+      }
+    })
+
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const shippingFee = ({ colombo: 2, main: 3, far: 4 })[zone] * usdToLkr
+    const voucherCode = typeof body.voucher === 'string' ? body.voucher.trim().toUpperCase() : null
+    const voucher = voucherCode
+      ? await Voucher.findOne({
+          code: voucherCode,
+          active: true,
+          $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+        })
+      : null
+    if (voucherCode && !voucher) throw Object.assign(new Error('Invalid or expired voucher code'), { statusCode: 400 })
+
+    const rawDiscount = !voucher
+      ? 0
+      : voucher.type === 'percent'
+        ? Math.round((subtotal * voucher.value) / 100)
+        : voucher.value
+    const discount = Math.min(subtotal, rawDiscount)
 
     return {
-      index,
-      name: item.name.trim().slice(0, 120),
-      image: item.image,
-      price,
-      quantity,
-      size: typeof item.size === 'string' ? item.size.slice(0, 20) : '',
-      color: typeof item.color === 'string' ? item.color.slice(0, 40) : '',
+      reservations,
+      values: {
+        user: user._id,
+        customer,
+        items,
+        payment: selectedPayment,
+        paymentStatus: 'pending',
+        paymentDetails: isBankTransfer
+          ? {
+              bankName: String(body.paymentDetails.bankName || '').trim(),
+              accountName: String(body.paymentDetails.accountName || '').trim(),
+              accountNumber: String(body.paymentDetails.accountNumber || '').trim(),
+              branch: String(body.paymentDetails.branch || '').trim(),
+              reference: '',
+              slipName: String(body.paymentDetails.slipName || '').trim(),
+              slipDataUrl: String(body.paymentDetails.slipDataUrl || '').trim(),
+            }
+          : {
+              bankName: '',
+              accountName: '',
+              accountNumber: '',
+              branch: '',
+              reference: '',
+              slipName: '',
+              slipDataUrl: '',
+            },
+        subtotal,
+        shippingFee,
+        discount,
+        voucher: voucherCode,
+        total: subtotal - discount + shippingFee,
+        deliveryEstimate: body.deliveryEstimate,
+        status: 'placed',
+      },
     }
-  })
-
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shippingFee = ({ colombo: 2, main: 3, far: 4 })[zone] * usdToLkr
-  const voucherCode = typeof body.voucher === 'string' ? body.voucher.trim().toUpperCase() : null
-  const voucher = voucherCode ? voucherValues[voucherCode] : null
-  if (voucherCode && !voucher) throw Object.assign(new Error('Invalid voucher code'), { statusCode: 400 })
-
-  const rawDiscount = !voucher
-    ? 0
-    : voucher.type === 'percent'
-      ? Math.round((subtotal * voucher.value) / 100)
-      : voucher.value * usdToLkr
-  const discount = Math.min(subtotal, rawDiscount)
-
-  return {
-    user: user._id,
-    customer,
-    items,
-    payment: selectedPayment,
-    paymentStatus: 'pending',
-    paymentDetails: isBankTransfer
-      ? {
-          bankName: String(body.paymentDetails.bankName || '').trim(),
-          accountName: String(body.paymentDetails.accountName || '').trim(),
-          accountNumber: String(body.paymentDetails.accountNumber || '').trim(),
-          branch: String(body.paymentDetails.branch || '').trim(),
-          reference: '',
-          slipName: String(body.paymentDetails.slipName || '').trim(),
-          slipDataUrl: String(body.paymentDetails.slipDataUrl || '').trim(),
-        }
-      : {
-          bankName: '',
-          accountName: '',
-          accountNumber: '',
-          branch: '',
-          reference: '',
-          slipName: '',
-          slipDataUrl: '',
-        },
-    subtotal,
-    shippingFee,
-    discount,
-    voucher: voucherCode,
-    total: subtotal - discount + shippingFee,
-    deliveryEstimate: body.deliveryEstimate,
-    status: 'placed',
+  } catch (error) {
+    await Promise.all(reservations.map(({ productId, variantId, quantity }) =>
+      restoreProductStock(productId, variantId, quantity),
+    ))
+    throw error
   }
 }
 
@@ -165,8 +226,16 @@ async function sendConfirmation(order, email) {
 }
 
 export const createOrder = async (req, res) => {
-  const values = buildOrderValues(req.body, req.user)
-  const order = await Order.create(values)
+  const { values, reservations } = await buildOrderValues(req.body, req.user)
+  let order
+  try {
+    order = await Order.create(values)
+  } catch (error) {
+    await Promise.all(reservations.map(({ productId, variantId, quantity }) =>
+      restoreProductStock(productId, variantId, quantity),
+    ))
+    throw error
+  }
 
   // Card orders: confirmation email is sent after PayHere confirms the payment
   if (order.payment !== 'Card Payment') {
@@ -206,12 +275,16 @@ export const cancelMyOrder = async (req, res) => {
       _id: req.params.orderId,
       user: req.user._id,
       status: 'placed',
+      paymentStatus: { $ne: 'paid' },
     },
     { $set: { status: 'cancelled', cancelledAt: new Date() } },
     { new: true, runValidators: true }
   )
 
-  if (order) return res.json({ success: true, order: toOrderResponse(order) })
+  if (order) {
+    await restoreOrderInventory(order.items)
+    return res.json({ success: true, order: toOrderResponse(order) })
+  }
 
   const existingOrder = await Order.findOne({ _id: req.params.orderId, user: req.user._id })
   if (!existingOrder) {

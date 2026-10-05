@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 
 const orderItemSchema = new mongoose.Schema(
   {
-    index: { type: Number, required: true, min: 0 },
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null },
+    variantId: { type: String, trim: true, maxlength: 24, default: '' },
+    index: { type: Number, min: 0 },
     name: { type: String, required: true, trim: true, maxlength: 120 },
     image: { type: String, required: true, maxlength: 2048 },
     price: { type: Number, required: true, min: 0 },
@@ -66,7 +68,7 @@ const orderSchema = new mongoose.Schema(
     deliveryEstimate: { type: String, required: true, trim: true, maxlength: 80 },
     status: {
       type: String,
-      enum: ['placed', 'cancelled'],
+      enum: ['placed', 'processing', 'shipped', 'delivered', 'cancelled'],
       default: 'placed',
       index: true,
     },

@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Banknote, Check, CreditCard, Truck } from 'lucide-react'
-import { products } from './ShopPage'
 import { useCart } from '../../context/CartContext'
 import { useAuth } from '../../context/AuthContext'
+import { useCatalog } from '../../context/CatalogContext'
 import { apiRequest } from '../../lib/api'
 import { startPayHerePayment } from '../../lib/payhere'
 import { DISTRICTS, getDeliveryEstimate, getShippingFee } from '../../lib/shipping'
-import { VOUCHERS, getDiscount } from '../../lib/vouchers'
-import { formatLkr, toLkr } from '../../lib/currency'
+import { formatLkr } from '../../lib/currency'
 
 const ADDRESS_KEY = 'glamcart-address'
 const MAX_BANK_SLIP_SIZE = 5 * 1024 * 1024
@@ -40,7 +39,8 @@ export default function CheckoutPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { cart, removeItems, shippingDistrict, setShippingDistrict } = useCart()
+  const { products, loading: catalogLoading } = useCatalog()
+  const { cart, isLoadingCart, removeItems, shippingDistrict, setShippingDistrict } = useCart()
   const placedRef = useRef(false)
   // Card order eka create wela, payment eka complete wenne nathnam mekata save wenawa
   // (retry karanakota aluth order ekak hadanne nathuwa eka ma use karanna)
@@ -49,10 +49,7 @@ export default function CheckoutPage() {
   // Selected cart lines are passed from the cart page via router state
   const keys = location.state?.keys || []
 
-  const [voucher, setVoucher] = useState(() => {
-    const code = location.state?.voucher
-    return code && VOUCHERS[code] ? { code, ...VOUCHERS[code] } : null
-  })
+  const [voucher, setVoucher] = useState(null)
   const [voucherInput, setVoucherInput] = useState('')
   const [voucherError, setVoucherError] = useState('')
   const [address, setAddress] = useState(() => loadAddress(user))
@@ -66,18 +63,36 @@ export default function CheckoutPage() {
     setAddress(loadAddress(user))
   }, [user?.id])
 
+  useEffect(() => {
+    const code = location.state?.voucher
+    if (!code) return
+    apiRequest('/vouchers', { method: 'POST', body: JSON.stringify({ code }) })
+      .then((result) => setVoucher(result.voucher))
+      .catch((error) => setVoucherError(error.message || 'Voucher could not be verified.'))
+  }, [location.state?.voucher])
+
   const items = cart
     .filter((entry) => keys.includes(entry.key))
-    .map((entry) => ({ ...entry, product: products[entry.index] }))
+    .map((entry) => {
+      const product = products.find((item) => item.id === entry.productId)
+      return { ...entry, product, variant: product?.variants?.find((item) => item.id === entry.variantId) }
+    })
     .filter((entry) => entry.product)
+
+  if (catalogLoading || isLoadingCart) {
+    return <main className="min-h-[60vh] bg-[#f7f3ed] flex items-center justify-center"><p role="status" className="text-sm text-stone">Loading checkout...</p></main>
+  }
 
   // Nothing to check out (or opened directly) -> back to cart
   if (!placedRef.current && items.length === 0) return <Navigate to="/cart" replace />
+  if (!placedRef.current && items.some((item) => !item.variant || item.quantity > item.variant.stock)) return <Navigate to="/cart" replace />
 
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0)
-  const subtotal = items.reduce((sum, item) => sum + toLkr(item.product.price) * item.quantity, 0)
+  const subtotal = items.reduce((sum, item) => sum + item.product.priceLkr * item.quantity, 0)
   const shippingFee = getShippingFee(shippingDistrict)
-  const discount = getDiscount(voucher, subtotal)
+  const discount = voucher
+    ? Math.min(subtotal, voucher.type === 'percent' ? Math.round(subtotal * voucher.value / 100) : voucher.value)
+    : 0
   const total = subtotal - discount + (shippingFee ?? 0)
   const estimate = getDeliveryEstimate(shippingDistrict)
 
@@ -120,16 +135,19 @@ export default function CheckoutPage() {
     reader.readAsDataURL(file)
   }
 
-  const applyVoucher = () => {
+  const applyVoucher = async () => {
     const code = voucherInput.trim().toUpperCase()
     if (!code) return
-    const found = VOUCHERS[code]
-    if (found) {
-      setVoucher({ code, ...found })
+    try {
+      const result = await apiRequest('/vouchers', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      })
+      setVoucher(result.voucher)
       setVoucherError('')
       setVoucherInput('')
-    } else {
-      setVoucherError('Invalid voucher code')
+    } catch (error) {
+      setVoucherError(error.message || 'Invalid voucher code')
     }
   }
 
@@ -160,14 +178,10 @@ export default function CheckoutPage() {
 
     const order = {
       customer: { ...address, district: shippingDistrict },
-      items: items.map(({ product, quantity, size, color, index }) => ({
-        index,
-        name: product.name,
-        image: product.image,
-        price: toLkr(product.price),
+      items: items.map(({ product, quantity, variantId }) => ({
+        productId: product.id,
+        variantId,
         quantity,
-        size,
-        color,
       })),
       payment: paymentMethod,
       paymentDetails: paymentMethod === 'Bank Transfer'
@@ -343,7 +357,7 @@ export default function CheckoutPage() {
                       {variant && <p className="text-xs text-stone mt-1">{variant}</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold text-terracotta">{formatLkr(toLkr(product.price) * quantity)}</p>
+                      <p className="text-sm font-semibold text-terracotta">{formatLkr(product.priceLkr * quantity)}</p>
                       <p className="text-xs text-stone mt-1">Qty: {quantity}</p>
                     </div>
                   </div>

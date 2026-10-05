@@ -1,0 +1,216 @@
+{
+  "visibility": {
+    "topBar": true,
+    "hero": true,
+    "serviceFeatures": true,
+    "categories": true,
+    "featured": true,
+    "promotions": true,
+    "about": true,
+    "whyChooseUs": true,
+    "newsletter": true,
+    "footer": true
+  },
+  "brand": {
+    "name": "Glam Cart",
+    "logoUrl": "",
+    "searchPlaceholder": "Search products..."
+  },
+  "topBar": {
+    "messages": [
+      "Island wide orders, weekly on all orders",
+      "Easy 7 day returns",
+      "New arrivals every week"
+    ],
+    "helpLabel": "Help",
+    "trackOrderLabel": "Track Order",
+    "currencyLabel": "Sri Lanka / LKR"
+  },
+  "navigation": [
+    { "label": "Home", "target": "home", "value": "" },
+    { "label": "Shop", "target": "shop", "value": "" },
+    { "label": "Men", "target": "category", "value": "Men" },
+    { "label": "Women", "target": "category", "value": "Women" },
+    { "label": "Sale", "target": "tag", "value": "Sale" },
+    { "label": "About Us", "target": "about", "value": "" }
+  ],
+  "hero": {
+    "eyebrow": "New Collection 2026",
+    "titleLine1": "Redefine Your",
+    "titleLine2": "Everyday Aesthetic",
+    "description": "Discover premium quality products crafted for comfort, style and performance.",
+    "primaryButton": "Shop Now",
+    "secondaryButton": "Explore Trends",
+    "slides": [
+      {
+        "image": "",
+        "alt": "Two models wearing this season’s collection"
+      },
+      {
+        "image": "",
+        "alt": "Models showcasing a fashion collection"
+      },
+      {
+        "image": "",
+        "alt": "Models showcasing a refined fashion collection"
+      }
+    ]
+  },
+  "serviceFeatures": [
+    { "title": "Fast & Reliable", "subtitle": "Global shipping" },
+    { "title": "Easy Returns", "subtitle": "On orders over Rs. 8,800" },
+    { "title": "Secure Payments", "subtitle": "100% secure checkout" },
+    { "title": "Quality Guarantee", "subtitle": "We're always here" }
+  ],
+  "categories": [
+    { "label": "Men", "image": "" },
+    { "label": "Women", "image": "" },
+    { "label": "Kids", "image": "" },
+    { "label": "Footwear", "image": "" },
+    { "label": "Accessories", "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=300&auto=format&fit=crop" },
+    { "label": "Cosmetics", "image": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=300&auto=format&fit=crop" }
+  ],
+  "featured": {
+    "title": "Featured Products",
+    "subtitle": "Fresh styles for your everyday look.",
+    "productNames": [
+      "Linen Blend Dress",
+      "Core Logo T-Shirt",
+      "Everyday Sneakers",
+      "Structured Handbag",
+      "Tailored Wool Coat",
+      "Evening Slip Dress",
+      "Retro Runner Sneakers",
+      "Mini Crossbody Bag",
+      "Hydrating Face Serum",
+      "Soft Matte Palette"
+    ]
+  },
+  "shopUi": {
+    "collectionLabel": "The collection",
+    "searchResultsLabel": "Search results",
+    "shopTitle": "Shop",
+    "sortLabel": "Sort by:",
+    "categoriesLabel": "Categories",
+    "allProductsLabel": "All Products",
+    "priceRangeLabel": "Price Range",
+    "sizesLabel": "Sizes",
+    "colorsLabel": "Color Palettes",
+    "noProductsLabel": "No products found",
+    "productsSuffix": "products",
+    "loadingLabel": "Loading products...",
+    "previousLabel": "Prev",
+    "nextLabel": "Next"
+  },
+  "promotions": [
+    {
+      "title": "Sale",
+      "subtitle": "Minimal, medium premium and fashionable",
+      "button": "Shop Essentials",
+      "image": "",
+      "theme": "terracotta",
+      "target": "tag",
+      "value": "Sale"
+    },
+    {
+      "title": "Up to 50% Off",
+      "subtitle": "On selected items and styles",
+      "button": "Shop Now",
+      "image": "",
+      "theme": "sand",
+      "target": "shop",
+      "value": ""
+    },
+    {
+      "title": "New Arrivals",
+      "subtitle": "Elevate your new day",
+      "button": "Shop New",
+      "image": "",
+      "theme": "olive",
+      "target": "tag",
+      "value": "New"
+    }
+  ],
+  "about": {
+    "eyebrow": "Our Story",
+    "title": "Thoughtfully Designed, Sustainably Crafted.",
+    "description": "We believe in creating beautiful pieces that fit naturally into everyday life, using considered materials and responsible practices wherever possible.",
+    "images": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "values": [
+      { "title": "Pure Materials", "text": "Breathable and carefully selected fabrics" },
+      { "title": "Ethical Craft", "text": "Made with care and integrity" },
+      { "title": "Timeless Design", "text": "Simple styles made to last" }
+    ],
+    "button": "Discover More"
+  },
+  "whyChooseUs": {
+    "title": "Why Choose Glam Cart?",
+    "points": [
+      "Premium Fabrics",
+      "Sustainable Fabrics",
+      "Trendy Releases",
+      "Fast & Reliable Delivery",
+      "Easy Returns",
+      "Loved by Thousands"
+    ],
+    "image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=700&auto=format&fit=crop",
+    "quote": "Fashion is not just what you wear, but how you feel.",
+    "attribution": "Glam Cart"
+  },
+  "newsletter": {
+    "title": "Join Our Fashion Community",
+    "description": "Get exclusive offers, early access to new collections and style tips.",
+    "placeholder": "Enter your email address",
+    "button": "Subscribe"
+  },
+  "footer": {
+    "description": "Glam Cart is your modern style destination for prints, textures and timeless fashion.",
+    "contactHeading": "Contact Info",
+    "shopHeading": "Shop",
+    "categoriesHeading": "Categories",
+    "helpHeading": "Help",
+    "ourStoryLabel": "Our Story",
+    "wishlistLabel": "Wishlist",
+    "faqsLabel": "FAQs",
+    "trackOrderLabel": "Track Order",
+    "email": "contact@glamcart.com",
+    "phone": "077 123 4567",
+    "address": "No 178/B Wijerama Road, Colombo 07",
+    "hours": "Mon – Sat: 9AM – 7PM",
+    "socials": [
+      { "label": "Instagram", "url": "https://www.instagram.com/" },
+      { "label": "Facebook", "url": "https://www.facebook.com/" },
+      { "label": "X", "url": "https://www.x.com/" },
+      { "label": "YouTube", "url": "https://www.youtube.com/" }
+    ],
+    "faqs": [
+      { "question": "How can I place an order?", "answer": "Browse the shop, add your items to the cart, then continue to checkout to enter your delivery details and place your order." },
+      { "question": "Which payment methods are available?", "answer": "Checkout currently supports Cash on Delivery and Bank Transfer." },
+      { "question": "How is the delivery fee calculated?", "answer": "The delivery fee is calculated at checkout based on your selected delivery district." },
+      { "question": "Where can I view or cancel an order?", "answer": "Sign in and open Order History to view your orders. Orders that are still placed can be cancelled there." }
+    ],
+    "copyright": "© 2026 Glam Cart. All rights reserved.",
+    "paymentMethodsLabel": "Visa · Mastercard · Amex · PayPal"
+  },
+  "productDetail": {
+    "homeLabel": "Home",
+    "shopLabel": "Shop",
+    "availableLabel": "available in this option",
+    "outOfStockLabel": "This option is currently out of stock",
+    "colorLabel": "Color",
+    "sizeLabel": "Size",
+    "quantityLabel": "Quantity",
+    "addToCartLabel": "Add to Cart",
+    "addedToCartLabel": "Added to Cart",
+    "outOfStockButtonLabel": "Out of Stock",
+    "productDescriptionLabel": "Product Description",
+    "fabricCareLabel": "Fabric & Care",
+    "shippingReturnsLabel": "Shipping & Returns",
+    "shippingReturns": "Delivery fees and estimates are shown at checkout after you select your district. Glam Cart offers easy 7-day returns."
+  }
+}

@@ -1,11 +1,7 @@
 import { Truck, RotateCcw, ShieldCheck, BadgeCheck } from 'lucide-react'
+import { useSiteContent } from '../context/SiteContentContext'
 
-const features = [
-  { icon: Truck, title: 'Fast & Reliable', subtitle: 'Global shipping' },
-  { icon: RotateCcw, title: 'Easy Returns', subtitle: 'On orders over Rs. 8,800' },
-  { icon: ShieldCheck, title: 'Secure Payments', subtitle: '100% secure checkout' },
-  { icon: BadgeCheck, title: 'Quality Guarantee', subtitle: "We're always here" },
-]
+const featureIcons = [Truck, RotateCcw, ShieldCheck, BadgeCheck]
 
 const borderClasses = [
   '',
@@ -15,10 +11,13 @@ const borderClasses = [
 ]
 
 export default function ServiceFeatures() {
+  const { content } = useSiteContent()
   return (
     <section className="border-b border-cream-dark bg-cream">
       <div className="w-full px-6 md:px-12 py-8 grid grid-cols-2 md:grid-cols-4">
-        {features.map(({ icon: Icon, title, subtitle }, i) => (
+        {content.serviceFeatures.map(({ title, subtitle }, i) => {
+          const Icon = featureIcons[i % featureIcons.length]
+          return (
           <div
             key={title}
             className={`flex items-center gap-3 py-4 px-4 md:px-6 ${borderClasses[i]}`}
@@ -29,7 +28,8 @@ export default function ServiceFeatures() {
               <p className="text-xs text-stone">{subtitle}</p>
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
     </section>
   )

@@ -1,0 +1,380 @@
+[
+  {
+    "legacyIndex": 0,
+    "name": "Core Logo T-Shirt",
+    "category": "Men",
+    "priceLkr": 3300,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 1,
+    "name": "Linen Blend Dress",
+    "category": "Women",
+    "priceLkr": 3300,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 2,
+    "name": "Linen Blend Shirt",
+    "category": "Men",
+    "priceLkr": 3300,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 3,
+    "name": "Everyday Sneakers",
+    "category": "Footwear",
+    "priceLkr": 3300,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 4,
+    "name": "Structured Handbag",
+    "category": "Accessories",
+    "priceLkr": 3300,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 5,
+    "name": "Color Block Jacket",
+    "category": "Men",
+    "priceLkr": 3300,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 6,
+    "name": "Classic Overshirt",
+    "category": "Men",
+    "priceLkr": 2200,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1627225793904-a2f900a6e4cf?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 7,
+    "name": "Minimal Sunglasses",
+    "category": "Accessories",
+    "priceLkr": 2200,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 8,
+    "name": "Core Logo T-Shirt",
+    "category": "Men",
+    "priceLkr": 2200,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1503341504253-dff99c4d4b8f?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 9,
+    "name": "Linen Blend Dress",
+    "category": "Women",
+    "priceLkr": 3300,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 10,
+    "name": "Everyday Sneakers",
+    "category": "Footwear",
+    "priceLkr": 3300,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 11,
+    "name": "Linen Logo T-Shirt",
+    "category": "Men",
+    "priceLkr": 3300,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1562157873-818bc0726f68?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 12,
+    "name": "Vintage Sunglasses",
+    "category": "Accessories",
+    "priceLkr": 2200,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 13,
+    "name": "Linen Pleat Dress",
+    "category": "Women",
+    "priceLkr": 2090,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 14,
+    "name": "Linen Blend Jacket",
+    "category": "Men",
+    "priceLkr": 3300,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 15,
+    "name": "Relaxed Oxford Shirt",
+    "category": "Men",
+    "priceLkr": 3740,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1603252110481-7ba873bf42ab?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 16,
+    "name": "Everyday Tailored Trousers",
+    "category": "Men",
+    "priceLkr": 4620,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 17,
+    "name": "Textured Knit Polo",
+    "category": "Men",
+    "priceLkr": 3080,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1627225924765-552d49cf47ad?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 18,
+    "name": "Tailored Wool Coat",
+    "category": "Men",
+    "priceLkr": 8250,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 19,
+    "name": "Classic Denim Shirt",
+    "category": "Men",
+    "priceLkr": 3960,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 20,
+    "name": "Satin Summer Look",
+    "category": "Women",
+    "priceLkr": 3520,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1583496661160-fb5886a13d27?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 21,
+    "name": "Ribbed Knit Top",
+    "category": "Women",
+    "priceLkr": 1980,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 22,
+    "name": "Wide Leg Trousers",
+    "category": "Women",
+    "priceLkr": 4290,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 23,
+    "name": "Soft Knitwear",
+    "category": "Women",
+    "priceLkr": 4840,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 24,
+    "name": "Evening Slip Dress",
+    "category": "Women",
+    "priceLkr": 6380,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 25,
+    "name": "Kids Printed Hoodie",
+    "category": "Kids",
+    "priceLkr": 2420,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 26,
+    "name": "Kids Denim Overalls",
+    "category": "Kids",
+    "priceLkr": 2860,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1519457431-44ccd64a579b?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 27,
+    "name": "Kids Summer Set",
+    "category": "Kids",
+    "priceLkr": 2090,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 28,
+    "name": "Kids Cotton Dress",
+    "category": "Kids",
+    "priceLkr": 2640,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1596870230751-ebdfce98ec42?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 29,
+    "name": "Kids Canvas Sneakers",
+    "category": "Kids",
+    "priceLkr": 3190,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1514989940723-e8e51635b782?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 30,
+    "name": "Retro Runner Sneakers",
+    "category": "Footwear",
+    "priceLkr": 5720,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1549298916-f52d724204b4?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 31,
+    "name": "Leather Ankle Boots",
+    "category": "Footwear",
+    "priceLkr": 7480,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 32,
+    "name": "Minimal Slide Sandals",
+    "category": "Footwear",
+    "priceLkr": 2640,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1603487742131-4160ec999306?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 33,
+    "name": "Classic Loafers",
+    "category": "Footwear",
+    "priceLkr": 6050,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1614252369475-531dfa835eb1?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 34,
+    "name": "Mini Crossbody Bag",
+    "category": "Accessories",
+    "priceLkr": 3850,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 35,
+    "name": "Canvas Weekend Tote",
+    "category": "Accessories",
+    "priceLkr": 2970,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 36,
+    "name": "Classic Leather Belt",
+    "category": "Accessories",
+    "priceLkr": 1760,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 37,
+    "name": "Gold Tone Watch",
+    "category": "Accessories",
+    "priceLkr": 5280,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 38,
+    "name": "Hydrating Face Serum",
+    "category": "Cosmetics",
+    "priceLkr": 2310,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1556229010-6c3f2c9ca5f8?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 39,
+    "name": "Everyday Lip Tint",
+    "category": "Cosmetics",
+    "priceLkr": 1540,
+    "tag": "",
+    "image": "https://images.unsplash.com/photo-1586495777744-4413f21062fa?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 40,
+    "name": "Glow Body Lotion",
+    "category": "Cosmetics",
+    "priceLkr": 1980,
+    "tag": "Sale",
+    "image": "https://images.unsplash.com/photo-1556228578-8c89e6adf883?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  },
+  {
+    "legacyIndex": 41,
+    "name": "Soft Matte Palette",
+    "category": "Cosmetics",
+    "priceLkr": 3630,
+    "tag": "New",
+    "image": "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=500&auto=format&fit=crop",
+    "stock": 20
+  }
+]

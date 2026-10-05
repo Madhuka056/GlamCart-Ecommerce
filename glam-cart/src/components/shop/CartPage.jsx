@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { ArrowRight, Heart, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
-import { products } from './ShopPage'
 import { useCart } from '../../context/CartContext'
 import { useWishlist } from '../../context/WishlistContext'
+import { useCatalog } from '../../context/CatalogContext'
+import { apiRequest } from '../../lib/api'
 import { DISTRICTS, getShippingFee } from '../../lib/shipping'
-import { VOUCHERS, getDiscount } from '../../lib/vouchers'
-import { formatLkr, toLkr } from '../../lib/currency'
+import { formatLkr } from '../../lib/currency'
 
-const productPath = (index, name) =>
-  `/shop/products/${index}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+const productPath = (id, name) =>
+  `/shop/products/${id}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeItems, shippingDistrict, setShippingDistrict } = useCart()
+  const { cart, isLoadingCart, updateQuantity, removeItems, shippingDistrict, setShippingDistrict } = useCart()
   const { isWishlisted, toggleWishlist } = useWishlist()
+  const { products, loading: catalogLoading, error: catalogError } = useCatalog()
   const navigate = useNavigate()
 
   // Track UNselected lines so newly added items are selected by default
@@ -23,7 +24,11 @@ export default function CartPage() {
   const [voucherError, setVoucherError] = useState('')
 
   const cartItems = cart
-    .map((entry) => ({ ...entry, product: products[entry.index] }))
+    .map((entry) => {
+      const product = products.find((item) => item.id === entry.productId)
+      const variant = product?.variants?.find((item) => item.id === entry.variantId)
+      return { ...entry, product, variant }
+    })
     .filter((entry) => entry.product)
 
   const isSelected = (key) => !unselected.includes(key)
@@ -37,23 +42,32 @@ export default function CartPage() {
   const deleteSelected = () => removeItems(selectedItems.map((item) => item.key))
 
   const selectedCount = selectedItems.reduce((sum, item) => sum + item.quantity, 0)
-  const subtotal = selectedItems.reduce((sum, item) => sum + toLkr(item.product.price) * item.quantity, 0)
+  const subtotal = selectedItems.reduce((sum, item) => sum + item.product.priceLkr * item.quantity, 0)
   const shippingFee = selectedItems.length > 0 ? getShippingFee(shippingDistrict) : null
-  const discount = getDiscount(voucher, subtotal)
+  const discount = voucher
+    ? Math.min(subtotal, voucher.type === 'percent' ? Math.round(subtotal * voucher.value / 100) : voucher.value)
+    : 0
   const total = subtotal - discount + (shippingFee ?? 0)
-  const canCheckout = selectedItems.length > 0 && shippingFee !== null
+  const canCheckout = selectedItems.length > 0 && shippingFee !== null && selectedItems.every((item) => item.variant && item.quantity <= item.variant.stock)
 
-  const applyVoucher = () => {
+  const applyVoucher = async () => {
     const code = voucherInput.trim().toUpperCase()
     if (!code) return
-    const found = VOUCHERS[code]
-    if (found) {
-      setVoucher({ code, ...found })
+    try {
+      const result = await apiRequest('/vouchers', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      })
+      setVoucher(result.voucher)
       setVoucherError('')
       setVoucherInput('')
-    } else {
-      setVoucherError('Invalid voucher code')
+    } catch (error) {
+      setVoucherError(error.message || 'Invalid voucher code')
     }
+  }
+
+  if (catalogLoading || isLoadingCart) {
+    return <main className="min-h-[60vh] bg-[#f7f3ed] flex items-center justify-center"><p role="status" className="text-sm text-stone">Loading your cart...</p></main>
   }
 
   if (cartItems.length === 0) {
@@ -107,10 +121,10 @@ export default function CartPage() {
             </button>
           </div>
 
-          {cartItems.map(({ key, index, quantity, size, color, product }) => {
-            const variant = [size && `Size: ${size}`, color && `Color: ${color}`].filter(Boolean).join(', ')
-            const path = productPath(index, product.name)
-            const wishlisted = isWishlisted(index)
+          {cartItems.map(({ key, productId, quantity, size, color, product, variant }) => {
+            const optionLabel = [size && `Size: ${size}`, color && `Color: ${color}`].filter(Boolean).join(', ')
+            const path = productPath(productId, product.name)
+            const wishlisted = isWishlisted(productId)
 
             return (
               <div key={key} className="flex gap-3 sm:gap-4 bg-sand rounded-2xl p-4 items-start">
@@ -134,7 +148,9 @@ export default function CartPage() {
                     <Link to={path} className="block text-sm font-medium text-ink hover:text-terracotta transition-colors">
                       {product.name}
                     </Link>
-                    {variant && <p className="text-xs text-stone mt-1">{variant}</p>}
+                    {optionLabel && <p className="text-xs text-stone mt-1">{optionLabel}</p>}
+                    {!variant && <p className="text-xs text-terracotta mt-1">This option is no longer available. Remove it and choose an available option.</p>}
+                    {variant && quantity > variant.stock && <p className="text-xs text-terracotta mt-1">Only {variant.stock} available for this size/color. Reduce the quantity.</p>}
                     {product.tag === 'Sale' && (
                       <span className="inline-block mt-2 bg-terracotta text-cream text-[10px] font-medium px-2 py-0.5 rounded-md">
                         Sale
@@ -145,9 +161,9 @@ export default function CartPage() {
                   <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3">
                     <div className="sm:text-right">
                       <p className="text-base font-semibold text-terracotta">
-                        {formatLkr(toLkr(product.price) * quantity)}
+                        {formatLkr(product.priceLkr * quantity)}
                       </p>
-                      {quantity > 1 && <p className="text-xs text-stone">{formatLkr(toLkr(product.price))} each</p>}
+                      {quantity > 1 && <p className="text-xs text-stone">{formatLkr(product.priceLkr)} each</p>}
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -165,8 +181,9 @@ export default function CartPage() {
                         <button
                           type="button"
                           aria-label="Increase quantity"
+                          disabled={!variant || quantity >= variant.stock}
                           onClick={() => updateQuantity(key, quantity + 1)}
-                          className="text-ink hover:text-terracotta transition-colors"
+                          className="text-ink hover:text-terracotta transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <Plus size={14} />
                         </button>
@@ -175,7 +192,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         aria-label={wishlisted ? 'Remove from wishlist' : 'Move to wishlist'}
-                        onClick={() => toggleWishlist(index)}
+                        onClick={() => toggleWishlist(productId)}
                         className="text-stone hover:text-terracotta transition-colors"
                       >
                         <Heart size={18} className={wishlisted ? 'fill-terracotta text-terracotta' : ''} />
@@ -233,7 +250,7 @@ export default function CartPage() {
           <div className="mb-4">
             {voucher ? (
               <div className="flex items-center justify-between bg-cream border border-cream-dark rounded-lg px-3 py-2.5 text-sm">
-                <span className="text-ink font-medium">{voucher.code} <span className="text-stone font-normal">({voucher.label})</span></span>
+                <span className="text-ink font-medium">{voucher.code} <span className="text-stone font-normal">({voucher.type === 'percent' ? `${voucher.value}% off` : `${formatLkr(voucher.value)} off`})</span></span>
                 <button
                   type="button"
                   onClick={() => setVoucher(null)}
@@ -267,7 +284,7 @@ export default function CartPage() {
                     Apply
                   </button>
                 </div>
-                {voucherError && <p className="text-xs text-terracotta mt-2">{voucherError}</p>}
+                {(voucherError || catalogError) && <p role="alert" className="text-xs text-terracotta mt-2">{voucherError || catalogError}</p>}
               </>
             )}
           </div>
@@ -301,7 +318,11 @@ export default function CartPage() {
             <p className="text-xs text-stone text-center mt-3">
               {selectedItems.length === 0
                 ? 'Select at least one item to continue.'
-                : 'Choose your delivery district to calculate shipping.'}
+                : selectedItems.some((item) => !item.variant)
+                  ? 'Remove unavailable options and choose an available size/color.'
+                  : selectedItems.some((item) => item.quantity > item.variant.stock)
+                    ? 'Reduce quantities to match available stock for the selected size/color.'
+                  : 'Choose your delivery district to calculate shipping.'}
             </p>
           )}
 

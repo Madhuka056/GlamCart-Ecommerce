@@ -93,9 +93,9 @@ export default function OrderHistoryPage() {
                         cancelled ? 'bg-terracotta/10 text-terracotta' : 'bg-olive/15 text-olive'
                       }`}>
                         {cancelled && <X size={13} />}
-                        {cancelled ? 'Cancelled' : 'Placed'}
+                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                       </span>
-                      {order.status === 'placed' && (
+                      {order.status === 'placed' && order.paymentStatus !== 'paid' && (
                         <button
                           type="button"
                           onClick={() => cancelOrder(order)}

@@ -19,12 +19,16 @@ import CartPage from './components/shop/CartPage'
 import CheckoutPage from './components/shop/CheckoutPage'
 import OrderSuccessPage from './components/shop/OrderSuccessPage'
 import OrderHistoryPage from './components/shop/OrderHistoryPage'
+import AdminDashboard from './components/admin/AdminDashboard'
 import AboutUs from './components/AboutUs'
 import { WishlistProvider } from './context/WishlistContext'
 import { CartProvider } from './context/CartContext'
 import { AuthProvider } from './context/AuthContext'
+import { CatalogProvider } from './context/CatalogContext'
+import { SiteContentProvider } from './context/SiteContentContext'
 import { AuthPromptProvider } from './context/AuthPromptContext'
 import AuthRequired from './components/AuthRequired'
+import { useSiteContent } from './context/SiteContentContext'
 
 export default function App() {
   const { pathname } = useLocation()
@@ -32,30 +36,43 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <AuthPromptProvider>
-        <WishlistProvider>
-          <CartProvider>
-            <div className="min-h-screen bg-cream">
-              <ScrollToTop />
-              <PageLoadingScreen />
-              <TopBar compact={isShopPage} />
-              <Header isShopPage={isShopPage} />
-              <Routes>
-                <Route path="/shop/products/:productId" element={<ProductDetailPage />} />
-                <Route path="/shop" element={<ShopPage />} />
-                <Route path="/wishlist" element={<AuthRequired message="Log in or sign up to view and manage your wishlist."><WishlistPage /></AuthRequired>} />
-                <Route path="/cart" element={<AuthRequired message="Log in or sign up to view and manage your cart."><CartPage /></AuthRequired>} />
-                <Route path="/checkout" element={<AuthRequired message="Log in or sign up to check out."><CheckoutPage /></AuthRequired>} />
-                <Route path="/order-history" element={<AuthRequired message="Log in or sign up to view your order history."><OrderHistoryPage /></AuthRequired>} />
-                <Route path="/order-success" element={<OrderSuccessPage />} />
-                <Route path="*" element={<HomePage />} />
-              </Routes>
-              <Footer />
-            </div>
-          </CartProvider>
-        </WishlistProvider>
-      </AuthPromptProvider>
+      <SiteContentProvider>
+        <CatalogProvider>
+          <AuthPromptProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <SiteLayout isShopPage={isShopPage} />
+              </CartProvider>
+            </WishlistProvider>
+          </AuthPromptProvider>
+        </CatalogProvider>
+      </SiteContentProvider>
     </AuthProvider>
+  )
+}
+
+function SiteLayout({ isShopPage }) {
+  const { content } = useSiteContent()
+
+  return (
+    <div className="min-h-screen bg-cream">
+      <ScrollToTop />
+      <PageLoadingScreen />
+      {content.visibility.topBar && <TopBar compact={isShopPage} />}
+      <Header isShopPage={isShopPage} />
+      <Routes>
+        <Route path="/shop/products/:productId" element={<ProductDetailPage />} />
+        <Route path="/shop" element={<ShopPage />} />
+        <Route path="/wishlist" element={<AuthRequired message="Log in or sign up to view and manage your wishlist."><WishlistPage /></AuthRequired>} />
+        <Route path="/cart" element={<AuthRequired message="Log in or sign up to view and manage your cart."><CartPage /></AuthRequired>} />
+        <Route path="/checkout" element={<AuthRequired message="Log in or sign up to check out."><CheckoutPage /></AuthRequired>} />
+        <Route path="/order-history" element={<AuthRequired message="Log in or sign up to view your order history."><OrderHistoryPage /></AuthRequired>} />
+        <Route path="/order-success" element={<OrderSuccessPage />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="*" element={<HomePage />} />
+      </Routes>
+      {content.visibility.footer && <Footer />}
+    </div>
   )
 }
 
@@ -109,18 +126,19 @@ function ScrollToTop() {
 }
 
 function HomePage() {
+  const { content } = useSiteContent()
   return (
     <>
       <main>
-        <Hero />
-        <Reveal><ServiceFeatures /></Reveal>
-        <Reveal delay={80}><Categories /></Reveal>
-        <Reveal delay={120}><FeaturedProducts /></Reveal>
-        <Reveal delay={80}><PromoBanners /></Reveal>
-        <Reveal delay={100}><AboutUs /></Reveal>
-        <Reveal><WhyChooseUs /></Reveal>
+        {content.visibility.hero && <Hero />}
+        {content.visibility.serviceFeatures && <Reveal><ServiceFeatures /></Reveal>}
+        {content.visibility.categories && <Reveal delay={80}><Categories /></Reveal>}
+        {content.visibility.featured && <Reveal delay={120}><FeaturedProducts /></Reveal>}
+        {content.visibility.promotions && <Reveal delay={80}><PromoBanners /></Reveal>}
+        {content.visibility.about && <Reveal delay={100}><AboutUs /></Reveal>}
+        {content.visibility.whyChooseUs && <Reveal><WhyChooseUs /></Reveal>}
       </main>
-      <Reveal><Newsletter /></Reveal>
+      {content.visibility.newsletter && <Reveal><Newsletter /></Reveal>}
     </>
   )
 }

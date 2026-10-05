@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Search, User, Heart, ShoppingBag, Menu, X, LogOut, ClipboardList } from 'lucide-react'
+import { Search, User, Heart, ShoppingBag, Menu, X, LogOut, ClipboardList, LayoutDashboard } from 'lucide-react'
 import { useWishlist } from '../context/WishlistContext'
 import { useCart } from '../context/CartContext'
 import { formatLkr, toLkr } from '../lib/currency'
 import { useAuth } from '../context/AuthContext'
 import { useAuthPrompt } from '../context/AuthPromptContext'
-import { products } from './shop/ShopPage'
+import { useCatalog } from '../context/CatalogContext'
+import { useSiteContent } from '../context/SiteContentContext'
 import logo from '../assets/Logo.png'
 
-const navLinks = [
-  { label: 'Home', href: '#' },
-  { label: 'Shop', href: '#shop' },
-  { label: 'Men', href: '#men' },
-  { label: 'Women', href: '#women' },
-  { label: 'Sale', href: '#sale' },
-  { label: 'About Us', href: '#about-us' },
-]
+const getNavigationHref = ({ target, value }) => {
+  if (target === 'home') return '/'
+  if (target === 'category') return `/shop?category=${encodeURIComponent(value)}`
+  if (target === 'tag') return `/shop?tag=${encodeURIComponent(value)}`
+  if (target === 'about') return '/#about-us'
+  return '/shop'
+}
 
 export default function Header({ onNavigate, isShopPage = false }) {
   const navigate = useNavigate()
@@ -24,6 +24,8 @@ export default function Header({ onNavigate, isShopPage = false }) {
   const { wishlist } = useWishlist()
   const { cartCount } = useCart()
   const { user, loading, logout } = useAuth()
+  const { products } = useCatalog()
+  const { content } = useSiteContent()
   const { openAuthPrompt } = useAuthPrompt()
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
@@ -77,7 +79,6 @@ export default function Header({ onNavigate, isShopPage = false }) {
 
   const suggestions = trimmedQuery
     ? products
-        .map((product, index) => ({ ...product, index }))
         .filter(
           (product) =>
             product.name.toLowerCase().includes(trimmedQuery) ||
@@ -87,7 +88,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
     : []
 
   const getSuggestionPath = (product) =>
-    `/shop/products/${product.index}-${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+    `/shop/products/${product.id}-${product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
 
   const goToSuggestion = (product) => {
     navigate(getSuggestionPath(product))
@@ -130,6 +131,13 @@ export default function Header({ onNavigate, isShopPage = false }) {
     navigate('/')
   }
 
+  const handleNavigation = (event, item) => {
+    event.preventDefault()
+    if (item.target === 'home') goHome()
+    else if (item.target === 'about') goToAboutUs()
+    else navigate(getNavigationHref(item))
+  }
+
   const handleAccountClick = () => {
     if (user) {
       setAccountOpen((open) => !open)
@@ -167,47 +175,22 @@ export default function Header({ onNavigate, isShopPage = false }) {
             }}
             className="flex items-center gap-0 shrink-0"
           >
-            <img src={logo} alt="" className="block h-16 w-16 shrink-0 translate-y-1 object-contain mix-blend-multiply" />
+            <img src={content.brand.logoUrl || logo} alt="" className="block h-16 w-16 shrink-0 translate-y-1 object-contain mix-blend-multiply" />
             <span
               className="-ml-2 text-2xl font- tracking-tight"
               style={{ fontFamily: '"lora", serif' }}
             >
-              GlamCart
+              {content.brand.name}
             </span>
           </Link>
 
           {!isShopPage && (
             <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm font-bold text-charcoal">
-              {navLinks.map((link) => (
+              {content.navigation.map((link, index) => (
               <a
-                key={link.label}
-                href={
-                  link.label === 'Shop'
-                    ? '/shop'
-                    : link.label === 'Home'
-                      ? '/'
-                      : link.label === 'Men' || link.label === 'Women'
-                        ? `/shop?category=${link.label}`
-                        : link.label === 'Sale'
-                          ? '/shop?tag=Sale'
-                          : link.label === 'About Us'
-                            ? '/#about-us'
-                            : link.href
-                }
-                onClick={(event) => {
-                  event.preventDefault()
-                  if (link.label === 'Home') {
-                    goHome()
-                  } else if (link.label === 'Shop') {
-                    navigate('/shop')
-                  } else if (link.label === 'Men' || link.label === 'Women') {
-                    navigate(`/shop?category=${link.label}`)
-                  } else if (link.label === 'Sale') {
-                    navigate('/shop?tag=Sale')
-                  } else if (link.label === 'About Us') {
-                    goToAboutUs()
-                  }
-                }}
+                key={`${link.label}-${index}`}
+                href={getNavigationHref(link)}
+                onClick={(event) => handleNavigation(event, link)}
                 className="hover:text-terracotta transition-colors"
               >
                 {link.label}
@@ -229,7 +212,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                   onFocus={() => {
                     if (searchQuery) setShowSuggestions(true)
                   }}
-                  placeholder="Search products..."
+                  placeholder={content.brand.searchPlaceholder}
                   aria-label="Search products"
                   className="w-32 lg:w-52 bg-sand border border-cream-dark rounded-full px-4 py-2 text-sm text-ink placeholder:text-stone outline-none focus:border-terracotta transition-colors"
                 />
@@ -242,7 +225,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                 <div className="absolute top-full left-0 mt-2 w-72 bg-cream border border-cream-dark rounded-xl shadow-lg overflow-hidden z-50">
                   {suggestions.map((product) => (
                     <button
-                      key={`${product.index}-${product.name}`}
+                      key={product.id}
                       type="button"
                       onClick={() => goToSuggestion(product)}
                       className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-sand transition-colors"
@@ -251,7 +234,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                       <span className="min-w-0">
                         <span className="block text-sm text-ink truncate">{product.name}</span>
                         <span className="block text-xs text-stone">
-                          {product.category} · {formatLkr(toLkr(product.price))}
+                          {product.category} · {formatLkr(product.priceLkr)}
                         </span>
                       </span>
                     </button>
@@ -287,6 +270,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                     <p className="text-sm font-bold text-ink truncate">{user.name}</p>
                     <p className="text-xs text-stone truncate">{user.email}</p>
                   </div>
+                  {user.role !== 'admin' && (
                   <Link
                     to="/order-history"
                     onClick={() => setAccountOpen(false)}
@@ -295,6 +279,17 @@ export default function Header({ onNavigate, isShopPage = false }) {
                     <ClipboardList size={16} strokeWidth={1.75} />
                     Order History
                   </Link>
+                  )}
+                  {user.role === 'admin' && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setAccountOpen(false)}
+                      className="w-full flex items-center gap-2 px-4 py-3 text-sm text-charcoal hover:bg-sand hover:text-terracotta transition-colors"
+                    >
+                      <LayoutDashboard size={16} strokeWidth={1.75} />
+                      Admin dashboard
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -306,7 +301,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                 </div>
               )}
             </div>
-
+            {user?.role !== 'admin' && (
             <Link
               to="/wishlist"
               aria-label="Wishlist"
@@ -320,6 +315,9 @@ export default function Header({ onNavigate, isShopPage = false }) {
                 </span>
               )}
             </Link>
+            )}
+
+            {user?.role !== 'admin' && (
             <Link
               to="/cart"
               aria-label="Cart"
@@ -333,6 +331,7 @@ export default function Header({ onNavigate, isShopPage = false }) {
                 </span>
               )}
             </Link>
+            )}
             {!isShopPage && (
               <button
                 aria-label="Toggle menu"
@@ -348,35 +347,12 @@ export default function Header({ onNavigate, isShopPage = false }) {
         {/* Mobile nav panel (only page links; wishlist/account are available as header icons) */}
         {!isShopPage && menuOpen && (
           <nav className="lg:hidden border-t border-cream-dark bg-cream px-6 py-4 flex flex-col gap-4 text-sm font-bold text-charcoal">
-            {navLinks.map((link) => (
+            {content.navigation.map((link, index) => (
               <a
-                key={link.label}
-                href={
-                  link.label === 'Shop'
-                    ? '/shop'
-                    : link.label === 'Home'
-                      ? '/'
-                      : link.label === 'Men' || link.label === 'Women'
-                        ? `/shop?category=${link.label}`
-                        : link.label === 'Sale'
-                          ? '/shop?tag=Sale'
-                          : link.label === 'About Us'
-                            ? '/#about-us'
-                        : link.href
-                }
+                key={`${link.label}-${index}`}
+                href={getNavigationHref(link)}
                 onClick={(event) => {
-                  event.preventDefault()
-                  if (link.label === 'Home') {
-                    goHome()
-                  } else if (link.label === 'Shop') {
-                    navigate('/shop')
-                  } else if (link.label === 'Men' || link.label === 'Women') {
-                    navigate(`/shop?category=${link.label}`)
-                  } else if (link.label === 'Sale') {
-                    navigate('/shop?tag=Sale')
-                  } else if (link.label === 'About Us') {
-                    goToAboutUs()
-                  }
+                  handleNavigation(event, link)
                   setMenuOpen(false)
                 }}
                 className="hover:text-terracotta transition-colors"

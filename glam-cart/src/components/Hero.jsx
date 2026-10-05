@@ -4,24 +4,26 @@ import { useNavigate } from 'react-router-dom'
 import heroImage from '../assets/hero1.jpg'
 import modelsImage from '../assets/hero2.jpg'
 import secondHeroImage from '../assets/hero3.jpeg'
+import { useSiteContent } from '../context/SiteContentContext'
 
-const heroImages = [
-  { src: heroImage, alt: 'Two models wearing this season’s collection' },
-  { src: modelsImage, alt: 'Models showcasing a fashion collection' },
-  { src: secondHeroImage, alt: 'Models showcasing a refined fashion collection' },
-]
+const defaultHeroImages = [heroImage, modelsImage, secondHeroImage]
 
 export default function Hero() {
   const navigate = useNavigate()
+  const { content } = useSiteContent()
+  const heroImages = content.hero.slides.map((slide, index) => ({
+    src: slide.image || defaultHeroImages[index % defaultHeroImages.length],
+    alt: slide.alt,
+  }))
   const [activeImage, setActiveImage] = useState(0)
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      setActiveImage((current) => (current + 1) % heroImages.length)
+      setActiveImage((current) => (current + 1) % content.hero.slides.length)
     }, 4000)
 
     return () => window.clearInterval(intervalId)
-  }, [])
+  }, [content.hero.slides.length])
 
   const scrollToFeatured = () => {
     document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth' })
@@ -31,10 +33,10 @@ export default function Hero() {
     <section id="home-hero" className="relative w-full h-[520px] md:h-[720px] overflow-hidden bg-charcoal">
       {heroImages.map((image, index) => (
         <img
-          key={image.src}
+          key={`${image.src}-${index}`}
           src={image.src}
           alt={image.alt}
-          aria-hidden={index !== activeImage}
+          aria-hidden={index !== activeImage % heroImages.length}
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
             index === 0
               ? 'hero-image object-[0%_40%] md:object-[center_40%]'
@@ -42,7 +44,7 @@ export default function Hero() {
                 ? 'hero-image-models object-[center_30%]'
                 : 'object-[75%_18%] md:object-[center_top]'
           } ${
-            index === activeImage ? 'opacity-100' : 'opacity-0'
+            index === activeImage % heroImages.length ? 'opacity-100' : 'opacity-0'
           }`}
         />
       ))}
@@ -52,15 +54,15 @@ export default function Hero() {
       <div className="relative z-10 h-full w-full px-6 md:px-16 flex items-center text-left">
         <div className="hero-copy max-w-lg">
           <span className="hero-item inline-block bg-terracotta/80 text-sand/85 text-xs tracking-wide px-3 py-1.5 rounded-full mb-6">
-            New Collection 2026
+            {content.hero.eyebrow}
           </span>
           <h1 className="hero-item hero-item-delay-1 font-display text-4xl sm:text-6xl leading-tight text-cream mb-5">
-            Redefine Your
+            {content.hero.titleLine1}
             <br />
-            Everyday Aesthetic
+            {content.hero.titleLine2}
           </h1>
           <p className="hero-item hero-item-delay-2 text-cream/85 max-w-md mb-8 leading-relaxed">
-            Discover premium quality products crafted for comfort, style and performance.
+            {content.hero.description}
           </p>
           <div className="hero-item hero-item-delay-3 flex items-center gap-4">
             <button
@@ -68,14 +70,14 @@ export default function Hero() {
               onClick={() => navigate('/shop')}
               className="inline-flex items-center gap-2 bg-cream-dark text-ink px-6 py-3 rounded-full text-sm font-medium hover:bg-terracotta hover:text-ink hover:-translate-y-0.5 transition-all"
             >
-              Shop Now <ArrowRight size={16} />
+              {content.hero.primaryButton} <ArrowRight size={16} />
             </button>
             <button
               type="button"
               onClick={scrollToFeatured}
               className="inline-flex items-center gap-2 border border-cream text-cream px-6 py-3 rounded-full text-sm font-medium hover:bg-cream-dark hover:text-ink hover:-translate-y-0.5 transition-all"
             >
-              Explore Trends <ArrowRight size={16} />
+              {content.hero.secondaryButton} <ArrowRight size={16} />
             </button>
           </div>
         </div>

@@ -1,47 +1,65 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { useAuth } from './AuthContext'
 import { useAuthPrompt } from './AuthPromptContext'
+import { useCatalog } from './CatalogContext'
 
 const CartContext = createContext(null)
 
-// Same product with a different size/color is a separate cart line.
-// Items added without options keep key = String(index), so old saved carts and old calls still work.
-const makeKey = (index, size, color) => (size || color ? `${index}-${size || ''}-${color || ''}` : String(index))
+// Each inventory variant is its own cart line; older saved entries are matched by size/color.
+const makeKey = (productId, variantId, size, color) =>
+  variantId ? `${productId}-variant-${variantId}` : (size || color ? `${productId}-${size || ''}-${color || ''}` : String(productId))
 
-const normalizeCart = (entries) =>
+const normalizeCart = (entries, products) =>
   Array.isArray(entries)
-    ? entries.map((entry) => ({ ...entry, key: entry.key ?? makeKey(entry.index, entry.size, entry.color) }))
+    ? entries.map((entry) => {
+        const product = products.find((item) => item.id === entry.productId || item.legacyIndex === entry.index)
+        const productId = entry.productId || product?.id
+        const variants = product?.variants || []
+        const variant = variants.find((item) => item.id === entry.variantId)
+          || variants.find((item) => item.size === (entry.size || '') && item.color === (entry.color || ''))
+          || (variants.length === 1 ? variants[0] : null)
+        return productId
+          ? {
+              ...entry,
+              productId,
+              variantId: variant?.id || entry.variantId || '',
+              size: variant?.size ?? entry.size,
+              color: variant?.color ?? entry.color,
+              key: makeKey(productId, variant?.id || entry.variantId, entry.size, entry.color),
+            }
+          : entry
+      })
     : []
 
-// k can be a line key (string) or, for older callers, a product index (number)
-const matches = (entry, k) => entry.key === String(k) || (typeof k === 'number' && entry.index === k)
+const matches = (entry, k) => entry.key === String(k) || entry.productId === String(k)
 
 export function CartProvider({ children }) {
   const { user, loading } = useAuth()
+  const { products, loading: catalogLoading } = useCatalog()
   const { openAuthPrompt } = useAuthPrompt()
   const [cart, setCart] = useState([])
   const [shippingDistrict, setShippingDistrict] = useState('')
   const [loadedFor, setLoadedFor] = useState(null)
   const [toast, setToast] = useState(null)
   const toastTimer = useRef(null)
+  const accountId = user?.id
+  const storageKey = accountId ? String(accountId) : 'guest'
+  const isLoadingCart = loading || catalogLoading || loadedFor !== storageKey
 
   useEffect(() => {
-    if (loading) return
-
-    const accountId = user?.id
-    const storageKey = accountId ? String(accountId) : 'guest'
+    if (loading || catalogLoading) return
 
     try {
       const savedCart = accountId ? localStorage.getItem(`glamcart-cart:${accountId}`) : null
       const savedDistrict = accountId ? localStorage.getItem(`glamcart-district:${accountId}`) : null
-      setCart(savedCart ? normalizeCart(JSON.parse(savedCart)) : [])
+      setCart(savedCart ? normalizeCart(JSON.parse(savedCart), products) : [])
       setShippingDistrict(savedDistrict || '')
     } catch {
       setCart([])
       setShippingDistrict('')
     }
     setLoadedFor(storageKey)
-  }, [loading, user?.id])
+  }, [catalogLoading, loading, products, user?.id])
 
   useEffect(() => {
     if (loading || !user?.id || loadedFor !== String(user.id)) return
@@ -52,7 +70,7 @@ export function CartProvider({ children }) {
     } catch {
       // Browser storage may be unavailable or full; keep the current session usable.
     }
-  }, [cart, loading, loadedFor, shippingDistrict, user?.id])
+  }, [cart, catalogLoading, loading, loadedFor, shippingDistrict, user?.id])
 
   const showToast = (message) => {
     setToast(message)
@@ -61,17 +79,28 @@ export function CartProvider({ children }) {
   }
 
   // Total quantity of a product across all its sizes/colors
-  const getQuantity = (index) =>
-    cart.filter((entry) => entry.index === index).reduce((total, entry) => total + entry.quantity, 0)
+  const getQuantity = (productId) =>
+    cart.filter((entry) => entry.productId === String(productId)).reduce((total, entry) => total + entry.quantity, 0)
 
-  const addToCart = (index, quantity = 1, options = {}) => {
+  const addToCart = (productId, quantity = 1, options = {}) => {
     if (loading || !user) {
       if (!loading) openAuthPrompt('Log in or sign up to add products to your cart.')
       return false
     }
 
-    const { size, color } = options
-    const key = makeKey(index, size, color)
+    const { variantId, size, color } = options
+    const product = products.find((item) => item.id === String(productId))
+    const variant = product?.variants?.find((item) => item.id === variantId)
+    if (!variant || quantity < 1 || quantity > variant.stock) {
+      showToast('That size/color is out of stock')
+      return false
+    }
+    const key = makeKey(productId, variantId, size, color)
+    const currentQuantity = cart.find((entry) => entry.key === key)?.quantity || 0
+    if (currentQuantity + quantity > variant.stock) {
+      showToast('There is not enough stock for that size/color')
+      return false
+    }
     setCart((current) => {
       const existing = current.find((entry) => entry.key === key)
       if (existing) {
@@ -79,7 +108,7 @@ export function CartProvider({ children }) {
           entry.key === key ? { ...entry, quantity: entry.quantity + quantity } : entry,
         )
       }
-      return [...current, { key, index, quantity, size, color }]
+      return [...current, { key, productId: String(productId), variantId, quantity, size, color }]
     })
     showToast('Added to cart')
     return true
@@ -118,6 +147,7 @@ export function CartProvider({ children }) {
       value={{
         cart,
         cartCount,
+        isLoadingCart,
         getQuantity,
         addToCart,
         removeFromCart,
